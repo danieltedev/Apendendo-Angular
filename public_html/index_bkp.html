@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html ng-app="listaTelefonica">
+    <head>
+        <title>Agenda Telefonica</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="lib/bootstrap-3.3.6-dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="lib/font-awesome-4.6.3/css/font-awesome.min.css" />
+        <script src="lib/angular-1.5.7/angular.min.js"></script>
+        <script src="lib/angular-1.5.7/angular-messages.min.js"></script>
+        <script src="lib/ui-bootstrap-1.3.3/ui-bootstrap-tpls-1.3.3.min.js"></script>
+        <style>
+            hr {border-color: #ccc;}
+            .selecionado {background-color: yellow; font-weight: bold;}
+            .alert-error>input, .alert-error>input:focus,
+            .alert-error>select, .alert-error>select:focus{border-color: #a94442;}
+            .alert-error>span{margin-left: 5px; color: #a94442;}
+            .row{margin-right:0 !important; margin-left:0 !important;}
+        </style>
+        <script>
+            angular.module("listaTelefonica", ["ngMessages", "ui.bootstrap"]).filter('startFrom', function () {
+                return function (elemento, inicio) {
+//                    inicio = +inicio; //parse to int
+                    return elemento.slice(inicio);
+                };
+            });
+            angular.module("listaTelefonica").controller("listaTelefonicaCtrl", function ($scope, $http) {
+                $scope.app = "Listar Telefonica";
+                $scope.pageSize = 5;
+                $scope.currentPage = 1;
+                $scope.maxSize = 5;
+//                $scope.contatos = [
+//                    {nome: "Pedro", telefone: "(11) 9999-8888", operadora: "", data: new Date("2016-06-22")},
+//                    {nome: "Ana", telefone: "(11) 9999-8888", operadora: "", data: new Date("2016-07-06")},
+//                    {nome: "Claudoa", telefone: "(11) 9999-8888", operadora: "", data: new Date("2016-12-04")}
+//                ];
+//                $scope.operadoras = [
+//                    {nome: "Oi", codigo: 14, categoria: "Celular"},
+//                    {nome: "Tim", codigo: 41, categoria: "Celular"},
+//                    {nome: "Claro", codigo: 21, categoria: "Celular"}
+//                ];
+                $scope.contatos = [];
+                $scope.operadoras = [];
+                var carregarContato = function () {
+//                    $http.get("http://ws-agenda-api.atwebpages.com/?url=categorias/listar");
+                    $http.get("http://ws-agenda-api.atwebpages.com/?url=contatos/listaComOperadora321").success(function (dados) {
+                        if (typeof dados === "object") {
+                            $scope.contatos = dados;
+                            angular.forEach($scope.contatos, function (value, key) {
+                                $scope.contatos[key].data = new Date(value.data);
+                                $scope.contatos[key].data.setDate($scope.contatos[key].data.getDate() + 1);
+                            });
+                            $scope.mensagemContato = null;
+                        }else{
+                            $scope.mensagemContato = "Ocorreu um erro falta: " + dados;
+                        }
+                    }).error(function (dados, status) {
+                        $scope.mensagemContato = "Ocorreu um erro falta: " + dados + " " + status;
+                    });
+                };
+                var carregarOperadoras = function () {
+                    $http.get("http://ws-agenda-api.atwebpages.com/?url=operadoras/listar").success(function (dados) {
+                        $scope.operadoras = dados;
+                        $scope.mensagemOperadora = null;
+                    }).error(function (dados, status) {
+                        $scope.mensagemOperadora = "Ocorreu um erro falta: " + dados + " " + status;
+                    });
+                };
+                $scope.adicionarContato = function (contato) {
+//                    $scope.contatos.push(angular.copy(contato));
+//                    delete $scope.contato;
+//                    $scope.contatoForm.$setPristine();
+                    var postContato = angular.copy(contato);
+                    postContato.operadora = postContato.operadora.id;
+                    postContato.data = postContato.data.toISOString().substring(10, 0);
+                    delete postContato.status;
+                    $http.post("http://ws-agenda-api.atwebpages.com/?url=contatos/incluirRertornoCompleto", postContato).success(function (dados) {
+                        contato.id = dados.id;
+                        contato.status = dados.status;
+                        $scope.contatos.push(angular.copy(contato));
+                        delete $scope.contato;
+                        $scope.contatoForm.$setPristine();
+                        $scope.mensagemContato = null;
+                    }).error(function (dados, status) {
+                        $scope.mensagemContato = "Ocorreu um erro falta: " + dados + " " + status;
+                    });
+                };
+                $scope.apagarContatos = function (contatos) {
+//                    console.log(contatos);
+//                    var contatosSelecionados = contatos.filter(function (contato) {
+//                        $scope.contatos = contatos.filter(function (contato) {
+//                            if (!contato.selecionado)
+//                                return contato;
+//                        });
+//                    });
+                    contatos.filter(function (contato) {
+                        if (contato.selecionado) {
+                            var index = contatos.indexOf(contato);
+                            var putContato = angular.copy(contato);
+                            putContato.operadora = putContato.operadora.id;
+                            putContato.status = 2;
+                            putContato.data = putContato.data.toISOString().substring(10, 0);
+                            delete putContato.selecionado;
+                            console.log(putContato);
+                            $http.put("http://ws-agenda-api.atwebpages.com/?url=contatos/alterarRertornoCompleto", putContato).success(function (dados) {
+                                dados.data = new Date(dados.data);
+                                console.log(dados);
+                                dados.data.setDate(dados.data.getDate() + 1);
+                                $scope.contatos.splice(index, 1, dados);
+                                delete $scope.contato;
+//                                $scope.contatoForm.$setPristine();
+                                $scope.mensagemContato = null;
+                            }).error(function (dados, status) {
+                                $scope.mensagemContato = "Ocorreu um erro falta: " + dados + " " + status;
+                            });
+                        }
+                    });
+                };
+                $scope.selecionar = function (contato, contatos) {
+                    $scope.contato = angular.copy(contato);
+                    $scope.contato.index = contatos.indexOf(contato);
+                    $scope.contato.selecionar = true;
+                    $scope.contatoForm.nome.$setDirty();
+                    $scope.contatoForm.telefone.$setDirty();
+                    $scope.contatoForm.data.$setDirty();
+                    $scope.contatoForm.operadora.$setDirty();
+//                    console.log(contatos);
+                };
+                $scope.editarContatos = function (contato) {
+//                    $scope.contatos.splice(contato.index, 1, contato);
+//                    delete $scope.contato;
+//                    $scope.contatoForm.$setPristine();
+                    var putContato = angular.copy(contato);
+                    var index = putContato.index;
+//                    delete $scope.contato;
+                    putContato.operadora = putContato.operadora.id;
+                    putContato.status = putContato.status.id;
+                    putContato.data = putContato.data.toISOString().substring(10, 0);
+                    delete putContato.selecionar;
+                    delete putContato.index;
+                    $http.put("http://ws-agenda-api.atwebpages.com/?url=contatos/alterarRertornoCompleto", putContato).success(function (dados) {
+                        dados.data = new Date(dados.data);
+                        dados.data.setDate(dados.data.getDate() + 1);
+                        $scope.contatos.splice(index, 1, dados);
+                        delete $scope.contato;
+                        $scope.contatoForm.$setPristine();
+                        $scope.mensagemContato = null;
+                    }).error(function (dados, status) {
+                        $scope.mensagemContato = "Ocorreu um erro falta: " + dados + " " + status;
+                    });
+                };
+                $scope.isContatoSelecionado = function (contatos) {
+                    return contatos.some(function (contato) {
+                        return contato.selecionado;
+                    });
+                };
+                $scope.ordenarPor = function (campo) {
+                    $scope.ordenarCampo = campo;
+                    $scope.direcao = !$scope.direcao;
+                };
+//                $scope.numeroDePaginas = function () {
+//                    return Math.ceil($scope.contatos.length / $scope.maximoDeItens);
+//                };
+                carregarContato();
+                carregarOperadoras();
+            });
+
+//            var app = angular.module("listaTelefonica", []);
+//            app.filter('startFrom', function () {
+//                return function (elemento, inicio) {
+//                    inicio = +inicio; //parse to int
+//                    return elemento.slice(inicio);
+//                };
+//            });
+        </script>
+    </head>
+    <body ng-controller="listaTelefonicaCtrl">
+        <header class="jumbotron">
+            <div class="row">
+                <!--{{contatos}}-->
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="container">
+                        <div class="alert alert-danger" role="alert" ng-show="mensagemContato">{{mensagemContato}}</div>
+                        <div class="alert alert-danger" role="alert" ng-show="mensagemOperadora">{{mensagemOperadora}}</div>
+                        <!--<h4 ng-bind="app"></h4>-->
+                        <h4 class="text-center">{{app}}</h4>
+                        <div class="input-group">
+                            <input type="text" class="form-control" ng-model="buscarContato" />
+                            <div class="input-group-addon">
+                                <i class="fa fa-search"></i>
+                            </div>
+                        </div>
+                        <table class="table table-responsive">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="text-center">
+                                        <a href="" ng-click="ordenarPor('nome')">Nome</a>
+                                    </th>
+                                    <th class="text-center">
+                                        <a href="" ng-click="ordenarPor('telefone')">Telefone</a>
+                                    </th>
+                                    <th class="text-center">
+                                        <a href="" ng-click="ordenarPor('operadora')">Operadora</a>
+                                    </th>
+                                    <th class="text-center">
+                                        <a href="" ng-click="ordenarPor('data')">Data</a>
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-center" ng-repeat="contato in contatos| filter:buscarContato | startFrom:(currentPage - 1) * pageSize | limitTo:pageSize | orderBy:ordenarCampo:direcao" ng-class="{'selecionado': contato.selecionado}">
+                                    <td><input type="checkbox" ng-model="contato.selecionado" /></td>
+                                    <!--<td ng-repeat="(key, value) in contato">-->
+                                    <!--{{value}}-->
+                                    <!--</td>-->
+                                    <td>{{contato.nome}}</td>
+                                    <td>{{contato.telefone}}</td>
+                                    <td>{{contato.operadora.nome}}</td>
+                                    <td>{{contato.data| date:"dd/MM/yyyy"}}</td>
+                                    <td>{{contato.status.descricao}}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-default" ng-click="selecionar(contato, contatos)">
+                                            <i class="fa fa-pencil" aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div style="text-align: center;">
+                            <uib-pagination total-items="contatos.length" ng-model="currentPage" items-per-page="pageSize" max-size="maxSize" boundary-link-numbers="true" rotate="false"></uib-pagination>
+                        </div>
+                        <div class='col-md-12'>
+                            <hr/>
+                        </div>
+                        <form name="contatoForm">
+                            <div class="form-group" ng-class="{'alert-error' : contatoForm.nome.$invalid && contatoForm.nome.$dirty}" ng-messages="contatoForm.nome.$error">
+                                <input type="text" class="form-control" name="nome" ng-model="contato.nome" ng-value="nome" placeholder="Nome" ng-required="true" ng-minlength="10"/>
+                                <span ng-message="required" ng-show="contatoForm.nome.$dirty">Este campo e obrigatório</span>
+                                <span ng-message="minlength">O campo nome deve ter no mínimo 10 caracteres</span>
+                            </div>
+                            <div class="form-group" ng-class="{'alert-error' : contatoForm.telefone.$invalid && contatoForm.telefone.$dirty}" ng-messages="contatoForm.telefone.$error">
+                                <input type="text" class="form-control" name="telefone" ng-model="contato.telefone" ng-value="telefone" placeholder="Telefone/Celular" ng-required="true" ng-pattern="/^\(\d{2}\) \d{4,5}-\d{4}$/"/>
+                                <span ng-message="required" ng-show="contatoForm.telefone.$dirty">Este campo é obrigatório</span>
+                                <span ng-message="pattern">Formato invalido ex: (00) 0000-0000 ou (00) 00000-0000</span>
+                            </div>
+                            <div class="form-group" ng-class="{'alert-error' : contatoForm.data.$invalid && contatoForm.data.$dirty}" ng-messages="contatoForm.data.$error">
+                                <input type="date" class="form-control" name="data" ng-model="contato.data" ng-value="data" ng-required="true" />
+                                <span ng-message="required" ng-show="contatoForm.data.$dirty">Este campo é obrigatório</span>
+                            </div>
+                            <div class="form-group" ng-class="{'alert-error' : contatoForm.operadora.$invalid && contatoForm.operadora.$dirty}" ng-messages="contatoForm.operadora.$error">
+                                <select class="form-control" name="operadora" ng-model="contato.operadora" ng-options="operadora as operadora.nome for operadora in operadoras| orderBy:'nome' track by operadora.codigo" ng-value="operadora" ng-required="true">
+                                    <option value="">Selecione uma operadora</option>
+                                </select>
+                                <span ng-message="required" ng-show="contatoForm.operadora.$dirty">Este campo é obrigatório</span>
+                            </div>
+                        </form>
+                        {{contato}}
+                        <button type="button" class="btn btn-primary btn-block" ng-click="adicionarContato(contato)" ng-show="!isContatoSelecionado(contatos) && !contato.selecionar" ng-disabled="contatoForm.$invalid">
+                            <i class="fa fa-floppy-o" aria-hidden="true"></i>
+                            <span>&nbsp;Adicionar</span>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-block" ng-click="apagarContatos(contatos)" ng-show="isContatoSelecionado(contatos) && !contato.selecionar" ng-disabled="contato.selecionar">
+                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                            <span>&nbsp;Remover</span>
+                        </button>
+                        <button type="button" class="btn btn-default btn-block" ng-click="editarContatos(contato)" ng-show="contato.selecionar" ng-disabled="contatoForm.$invalid">
+                            <i class="fa fa-pencil" aria-hidden="true"></i>
+                            <span>&nbsp;Alterar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </body>
+</html>

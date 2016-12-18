@@ -1,0 +1,46 @@
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<header class="jumbotron">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="container">
+                <form name="contatoForm">
+                    <div class="form-group" ng-class="{'alert-error' : contatoForm.nome.$invalid && contatoForm.nome.$dirty}" ng-messages="contatoForm.nome.$error">
+                        <input type="text" class="form-control" name="nome" ng-model="contato.nome" ng-value="nome" placeholder="Nome" ng-required="true" ng-minlength="10"/>
+                        <span ng-message="required" ng-show="contatoForm.nome.$dirty">Este campo e obrigatório</span>
+                        <span ng-message="minlength">O campo nome deve ter no mínimo 10 caracteres</span>
+                    </div>
+                    <div class="form-group" ng-class="{'alert-error' : contatoForm.telefone.$invalid && contatoForm.telefone.$dirty}" ng-messages="contatoForm.telefone.$error">
+                        <input type="text" class="form-control" name="telefone" ng-model="contato.telefone" ng-value="telefone" placeholder="Telefone/Celular" ng-required="true" ng-pattern="/^\(\d{2}\) \d{4,5}-\d{4}$/"  ui-masktel/>
+                        <span ng-message="required" ng-show="contatoForm.telefone.$dirty">Este campo é obrigatório</span>
+                        <span ng-message="pattern">Formato invalido ex: (00) 0000-0000 ou (00) 00000-0000</span>
+                    </div>
+                    <div class="form-group" ng-class="{'alert-error' : contatoForm.data.$invalid && contatoForm.data.$dirty}" ng-messages="contatoForm.data.$error">
+                        <input type="date" class="form-control" name="data" ng-model="contato.data" ng-value="data" ng-required="true" />
+                        <span ng-message="required" ng-show="contatoForm.data.$dirty">Este campo é obrigatório</span>
+                    </div>
+                    <div class="form-group" ng-class="{'alert-error' : contatoForm.operadora.$invalid && contatoForm.operadora.$dirty}" ng-messages="contatoForm.operadora.$error">
+                        <select class="form-control" name="operadora" ng-model="contato.operadora" ng-options="operadora as operadora.nome group by operadora.categoria.descricao for operadora in operadoras |  filter:{status: {id: '1'}} | orderBy:'nome' track by operadora.codigo" ng-value="operadora" ng-required="true">
+                            <!--<select class="form-control" name="operadora" ng-model="contato.operadora" ng-options="operadora.nome group by operadora.categoria for operadora in operadoras" ng-value="operadora" ng-required="true">filter:{status.id:'1'}-->
+                            <option value="">Selecione uma operadora</option>
+                        </select>
+                        <span ng-message="required" ng-show="contatoForm.operadora.$dirty">Este campo é obrigatório</span>
+                    </div>
+                    <!--{{operadoras}}-->
+                </form>
+                <!--{{contato}}-->
+                <button type="button" class="btn btn-primary btn-block" ng-click="adicionarContato(contato)" ng-show="!isContatoSelecionado(contatos) && !contato.selecionar" ng-disabled="contatoForm.$invalid">
+                    <i class="fa fa-floppy-o" aria-hidden="true"></i>
+                    <span>&nbsp;Adicionar</span>
+                </button>
+                <button type="button" class="btn btn-default btn-block" ng-click="editarContatos(contato)" ng-show="contato.selecionar" ng-disabled="contatoForm.$invalid">
+                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                    <span>&nbsp;Alterar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>

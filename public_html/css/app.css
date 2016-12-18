@@ -1,0 +1,16 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 19/07/2016, 11:09:31
+    Author     : daniel.teixeira
+*/
+
+hr {border-color: #ccc;}
+.selecionado {background-color: yellow; font-weight: bold;}
+.alert-error>input, .alert-error>input:focus,
+.alert-error>select, .alert-error>select:focus{border-color: #a94442;}
+.alert-error>span{margin-left: 5px; color: #a94442;}
+.row{margin-right:0 !important; margin-left:0 !important;}

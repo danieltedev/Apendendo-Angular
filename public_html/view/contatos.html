@@ -1,0 +1,78 @@
+<!--<header class="jumbotron" ng-controller="listaTelefonicaCtrl">-->
+<header class="jumbotron">
+    <ui-accordions>
+        <ui-accordion title="Accordion 1">
+            Panel content
+        </ui-accordion>
+        <ui-accordion title="Accordion 2">
+            Panel content
+        </ui-accordion>
+    </ui-accordions>
+    <div class="row">
+        <!--{{contatos}}-->
+        <div class="col-md-6 col-md-offset-3">
+            <div class="container">
+                <!--<div class="alert alert-danger" role="alert" ng-show="mensagemContato">{{mensagemContato}}</div>-->
+                <!--<div class="alert alert-danger" role="alert" ng-show="mensagemOperadora">{{mensagemOperadora}}</div>-->
+                <!--<h4 ng-bind="app"></h4>-->
+                <ui-alert title="Error!" message="mensagemContato" ng-show="mensagemContato"></ui-alert>
+                <ui-alert title="Error!" message="mensagemOperadora" ng-show="mensagemOperadora"></ui-alert>
+                <!--<div ui-alert></div>-->
+                <h4 class="text-center">{{app}}</h4>
+                <div class="input-group">
+                    <input type="text" class="form-control" ng-model="buscarContato" />
+                    <div class="input-group-addon">
+                        <i class="fa fa-search"></i>
+                    </div>
+                </div>
+                <table class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th class="text-center">
+                                <a href="" ng-click="ordenarPor('nome')">Nome</a>
+                            </th>
+                            <th class="text-center">
+                                <a href="" ng-click="ordenarPor('telefone')">Telefone</a>
+                            </th>
+                            <th class="text-center">
+                                <a href="" ng-click="ordenarPor('operadora')">Operadora</a>
+                            </th>
+                            <th class="text-center">
+                                <a href="" ng-click="ordenarPor('data')">Data</a>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-center" ng-repeat="contato in contatos| filter:buscarContato | startFrom:(currentPage - 1) * pageSize | limitTo:pageSize | orderBy:ordenarCampo:direcao" ng-class="{'selecionado': contato.selecionado}">
+                            <td><input type="checkbox" ng-model="contato.selecionado" /></td>
+                            <!--<td ng-repeat="(key, value) in contato">-->
+                            <!--{{value}}-->
+                            <!--</td>-->
+                            <td>{{contato.nome}}</td>
+                            <td>{{contato.telefone}}</td>
+                            <td>{{contato.operadora.nome}}</td>
+                            <td>{{contato.data| date:"dd/MM/yyyy"}}</td>
+                            <td>{{contato.status.descricao}}</td>
+                            <td>
+                                <button type="button" class="btn btn-default" ng-click="selecionar(contato, contatos)">
+                                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="text-align: center;">
+                    <uib-pagination total-items="(ncontatos || contatos.length)" ng-model="currentPage" items-per-page="pageSize" max-size="maxSize" boundary-link-numbers="true" rotate="false"></uib-pagination>
+                </div>
+                <div class='col-md-12'>
+                    <hr/>
+                </div>
+                <div class='col-md-12'>
+                    <a href="/Angular/novoContato" class="btn btn-primary btn-block">Novo Contato</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
